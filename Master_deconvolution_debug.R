@@ -8,7 +8,7 @@
 #   stop()
 # } 
 
-setwd("/home/au/code/DTMwork/Benchmarking/cobos_benchmarks")
+setwd("/home/au/code/deconv_benchmark")
 rm(T,P,C,refProfiles.var,marker_distrib)
 
 # ############################
