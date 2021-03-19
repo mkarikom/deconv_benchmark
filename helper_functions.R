@@ -25,7 +25,6 @@ Normalization <- function(data){
 
 
 Generator <- function(sce, phenoData, Num.mixtures = 1000, pool.size = 100, min.percentage = 1, max.percentage = 99, seed = 24){ 
-
   CT = unique(phenoData$cellType)
   ?stopifnot(length(CT) >= 2)
   
@@ -44,10 +43,10 @@ Generator <- function(sce, phenoData, Num.mixtures = 1000, pool.size = 100, min.
     #Only allow feasible mixtures based on cell distribution
     while(!exists("P")){
       
-      num.CT.mixture = sample(x = 2:length(CT),1)
-      selected.CT = sample(CT, num.CT.mixture, replace = FALSE)
+      num.CT.mixture = sample(x = 2:length(CT),1) # the number of cell types in the pseudobulk mixture
+      selected.CT = sample(CT, num.CT.mixture, replace = FALSE) # the random selection of cell types in the mixture
       
-      P = runif(num.CT.mixture, min.percentage, max.percentage) 
+      P = runif(num.CT.mixture, min.percentage, max.percentage) # random percentage for every pseudo-sub population in the mixture
       P = round(P/sum(P), digits = log10(pool.size))  #sum to 1
       P = data.frame(CT = selected.CT, expected = P, stringsAsFactors = FALSE)
       
@@ -58,8 +57,12 @@ Generator <- function(sce, phenoData, Num.mixtures = 1000, pool.size = 100, min.
       potential.mix = merge(P, cell.distribution)
       potential.mix$size = potential.mix$expected * pool.size
       
+      # exit condition
+      # we just keep regenerating lists 
+      # until none of them include any subset 
+      # that is larger than the actual number of the particular cell type in the sc data 
       if( !all(potential.mix$max.n >= potential.mix$size) | sum(P$expected) != 1){
-        rm(list="P") 
+        rm(list="P")
       }
       
     }
@@ -671,9 +674,9 @@ Deconvolution <- function(T, C, method, phenoDataC, P = NULL, elem = NULL, STRIN
         RESULTS <- t(SCDC::SCDC_prop(bulk.eset = T.eset, sc.eset = C.eset, ct.varname = "cellType", sample = "SubjectName", ct.sub = unique(as.character(phenoDataC$cellType)), iter.max = 200)$prop.est.mvw)
 
     }
-
-    RESULTS = RESULTS[gtools::mixedsort(rownames(RESULTS)),]
-    RESULTS = data.table::melt(RESULTS)
+  RESULTS = RESULTS[gtools::mixedsort(rownames(RESULTS)),]
+  RESULTS.nomelt = data.frame(RESULTS)
+  RESULTS = data.table::melt(RESULTS)
 	colnames(RESULTS) <-c("CT","tissue","observed_values")
 
 	if(!is.null(P)){
@@ -689,6 +692,6 @@ Deconvolution <- function(T, C, method, phenoDataC, P = NULL, elem = NULL, STRIN
 
 	}
 
-    return(RESULTS) 
+    return(list(results=RESULTS,nomelt=RESULTS.nomelt)) 
 
 }
