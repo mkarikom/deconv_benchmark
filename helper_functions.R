@@ -24,11 +24,13 @@ Normalization <- function(data){
 
 
 
-Generator <- function(sce, phenoData, Num.mixtures = 1000, pool.size = 100, min.percentage = 1, max.percentage = 99, seed = 24){ 
+Generator <- function(sce, phenoData, Num.mixtures = 1000, pool.size = 100, min.percentage = 1, max.percentage = 99, seed = 24,newseed = F){ 
   CT = unique(phenoData$cellType)
   ?stopifnot(length(CT) >= 2)
   
-  set.seed(seed)
+  if (newseed){
+    set.seed(seed) # turn off in order to get random data sets
+  }
   require(dplyr)
   require(gtools)
   
@@ -149,9 +151,11 @@ marker.fc <- function(fit2, log2.threshold = 1, output_name = "markers"){
 
 
 
-marker_strategies <- function(marker_distrib, marker_strategy, C){
-
-    set.seed(4)
+marker_strategies <- function(marker_distrib, marker_strategy, C, newseed = F, seed = 4){
+    
+    if (newseed){
+      set.seed(seed)
+    }
 
     if(marker_strategy == "all"){
         
@@ -276,7 +280,6 @@ Scaling <- function(matrix, option, phenoDataC=NULL){
         matrix = (matrix - min(matrix))/(max(matrix) - min(matrix))
 
     } else if (option=="LogNormalize"){
-        
         #matrix = as.matrix(expm1(Seurat::LogNormalize(matrix, display.progress = FALSE))) #for v2.1
         matrix = as.matrix(expm1(Seurat::LogNormalize(matrix, verbose = FALSE))) #for v3
 
@@ -570,7 +573,6 @@ Deconvolution <- function(T, C, method, phenoDataC, P = NULL, elem = NULL, STRIN
         RESULTS = apply(RESULTS,2,function(x) x/sum(x)) #explicit STO constraint
 
     } else if (method=="ssKL"){ 
-
         require(CellMix)
         md = marker_distrib #Full version, irrespective of C
         ML = CellMix::MarkerList()
