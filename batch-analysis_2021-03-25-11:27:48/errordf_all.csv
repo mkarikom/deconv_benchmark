@@ -1,0 +1,7 @@
+Pearson,RMSE,batchid,dataset,method,nbatch,ncells,nmix,normalizationC,normalizationT,nz,remove,transformation
+0.9918,0.0253,1,Baron,MuSiC,1,1000,5,column,LogNormalize,0,none,none
+0.9857,0.0343,1,Baron,SCDC,1,1000,5,column,LogNormalize,0,none,none
+0.12532432978293162,0.215514721477014,1,Baron,dsLDA,1,1000,5,column,LogNormalize,0,none,none
+0.9935,0.0322,1,Han,MuSiC,1,1000,5,column,LogNormalize,0,none,none
+0.971,0.0611,1,Han,SCDC,1,1000,5,column,LogNormalize,0,none,none
+0.13445205548553832,0.2131273420903267,1,Han,dsLDA,1,1000,5,column,LogNormalize,0,none,none

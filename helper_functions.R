@@ -470,6 +470,7 @@ Deconvolution <- function(T, C, method, phenoDataC, P = NULL, elem = NULL, STRIN
 
     ##########    MATRIX DIMENSION APPROPRIATENESS    ##########
     keep = intersect(rownames(C),rownames(T)) 
+    # browser()
     C = C[keep,]
     T = T[keep,]
 
