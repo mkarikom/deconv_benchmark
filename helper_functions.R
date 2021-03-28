@@ -24,8 +24,9 @@ Normalization <- function(data){
 
 
 
-Generator <- function(sce, phenoData, Num.mixtures = 1000, pool.size = 100, min.percentage = 1, max.percentage = 99, seed = 24,newseed = F){ 
+Generator <- function(sce, phenoData, Num.mixtures = 1000, pool.size = 100, min.percentage = 1, max.percentage = 99, CTall = FALSE, seed = 24,newseed = F){ 
   CT = unique(phenoData$cellType)
+
   ?stopifnot(length(CT) >= 2)
   
   if (newseed){
@@ -36,7 +37,6 @@ Generator <- function(sce, phenoData, Num.mixtures = 1000, pool.size = 100, min.
   
   cell.distribution = data.frame(table(phenoData$cellType),stringsAsFactors = FALSE) 
   colnames(cell.distribution) = c("CT","max.n")
-  
   Tissues = list()
   Proportions = list()
   
@@ -44,11 +44,15 @@ Generator <- function(sce, phenoData, Num.mixtures = 1000, pool.size = 100, min.
     
     #Only allow feasible mixtures based on cell distribution
     while(!exists("P")){
-      
-      num.CT.mixture = sample(x = 2:length(CT),1) # the number of cell types in the pseudobulk mixture
+      if (CTall){
+        num.CT.mixture = length(CT)
+      }else{
+        num.CT.mixture = sample(x = 2:length(CT),1) # the number of cell types in the pseudobulk mixture
+      }
       selected.CT = sample(CT, num.CT.mixture, replace = FALSE) # the random selection of cell types in the mixture
       
       P = runif(num.CT.mixture, min.percentage, max.percentage) # random percentage for every pseudo-sub population in the mixture
+      print(paste0("sampled P: \n",P))
       P = round(P/sum(P), digits = log10(pool.size))  #sum to 1
       P = data.frame(CT = selected.CT, expected = P, stringsAsFactors = FALSE)
       
@@ -439,7 +443,6 @@ Scaling <- function(matrix, option, phenoDataC=NULL){
 #################################################
 ##########    DECONVOLUTION METHODS    ##########
 Deconvolution <- function(T, C, method, phenoDataC, P = NULL, elem = NULL, STRING = NULL, marker_distrib, refProfiles.var){ 
-
     bulk_methods = c("CIBERSORT","DeconRNASeq","OLS","nnls","FARDEEP","RLR","DCQ","elastic_net","lasso","ridge","EPIC","DSA","ssKL","ssFrobenius","dtangle")
     sc_methods = c("MuSiC","BisqueRNA","DWLS","deconvSeq","SCDC")
 
@@ -470,7 +473,6 @@ Deconvolution <- function(T, C, method, phenoDataC, P = NULL, elem = NULL, STRIN
 
     ##########    MATRIX DIMENSION APPROPRIATENESS    ##########
     keep = intersect(rownames(C),rownames(T)) 
-    # browser()
     C = C[keep,]
     T = T[keep,]
 

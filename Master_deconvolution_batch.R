@@ -25,22 +25,27 @@ for (dataset in datasets){
     transformation = "none" # args[2]
     deconv_type = "sc" # args[3]
     methods = c("MuSiC","SCDC") # args[6]
-    nbatch = 1
-    nmix = 5
-    nz_thresh = 0.05 #for marker selection, keep genes where at least 30% of cells within a cell type have a read/UMI count different from 0
+    nbatch = 1 # number of synthetic datasets, each containing nmix mixtures
+    nmix = 10 # number of pseudobulk mixtures in each dataset
+    nz_thresh = 0.01 #for marker selection, keep genes where at least 30% of cells within a cell type have a read/UMI count different from 0
     number_cells = 1000 # round(as.numeric(args[7]), digits = -2) #has to be multiple of 100
     num_cores = 1 # min(5,parallel::detectCores()-1)
     normalization_scC = "column" # eg TMM args[4]
     normalization_scT = "LogNormalize" # eg TMM args[5]
-    min.percentage = 1 # minimum mixture percentage for any given cell type
-    max.percentage = 99 # maximum mixture percentage for any given cell type
+    min.percentage = 1 # minimum mixture percentage for any given cell type (this is scaled so it's actually the ratio between min max that matters)
+    max.percentage = 99 # maximum mixture percentage for any given cell type (this is scaled so it's actually the ratio between min max that matters)
+    CTthresh = 0.01 # only use celltypes making up at least 0.05% of all cells
+    CTall = FALSE # force generation of pseudobulk mixtures containing all (post-qc) detected cell types from original data
     set.seed(1)
     
     ############################
     ## Bulk, Baron
     ############################
     
-    paramstring = paste0("dataset.",dataset,"-remove.",to_remove,"-nz.",nz_thresh,"-transformation.",transformation,"-ncells.",number_cells,"-nmix.",nmix,"-nbatch.",nbatch,"-normalizationC.",normalization_scC,"-normalizationT.",normalization_scT)
+    paramstring = paste0("dataset.",dataset,"-remove.",to_remove,"-nz.",nz_thresh,"-transformation.",transformation,
+                         "-ncells.",number_cells,"-nmix.",nmix,"-nbatch.",nbatch,
+                         "-minP.",min.percentage,"-maxP.",max.percentage,"-CTthresh.",CTthresh,"-CTall.",CTall,
+                         "-normalizationC.",normalization_scC,"-normalizationT.",normalization_scT)
     
     #-------------------------------------------------------
     ### Helper functions + CIBERSORT external code
@@ -90,7 +95,7 @@ for (dataset in datasets){
     
     # Keep CTs with >= 50 cells after QC
     cell_counts = table(colnames(data))
-    to_keep = names(cell_counts)[cell_counts >= 50]
+    to_keep = names(cell_counts)[cell_counts >= CTthresh*sum(cell_counts)]
     pData <- full_phenoData[full_phenoData$cellType %in% to_keep,]
     to_keep = which(colnames(data) %in% to_keep)   
     data <- data[,to_keep]
@@ -175,11 +180,10 @@ for (dataset in datasets){
       cellType <- colnames(test)
       colnames(test) <- original_cell_names[testing]
       
-      generator <- Generator(sce = test, phenoData = full_phenoData, Num.mixtures = nmix, pool.size = number_cells,
-                             min.percentage = min.percentage, max.percentage = max.percentage)
+      generator <- Generator(sce = test, phenoData = pData, Num.mixtures = nmix, pool.size = number_cells,
+                             min.percentage = min.percentage, max.percentage = max.percentage, CTall = CTall)
       T <- generator[["T"]]
       P <- generator[["P"]]
-      
       #-------------------------------------------------------
       ### Transformation, scaling/normalization, marker selection for bulk deconvolution methods and deconvolution:
       
@@ -198,6 +202,15 @@ for (dataset in datasets){
         pDataC <- pDataC[pDataC$cellType != to_remove,]
         
       }
+      
+      # make sure all the genes are in both reference and bulk
+
+      genes_to_keep = sort(intersect(intersect(rownames(C),rownames(T)),rownames(refProfiles.var)))
+
+      C = C[match(genes_to_keep,rownames(C)),]
+      T = T[match(genes_to_keep,rownames(T)),]
+      refProfiles.var[match(genes_to_keep,rownames(refProfiles.var)),]
+      
       print("writing sc files")
       datapath = file.path("data_batch",dataset,"sc",paramstring,b)
       dir.create(datapath,recursive = TRUE)
