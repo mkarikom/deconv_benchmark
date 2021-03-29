@@ -256,7 +256,7 @@ Scaling <- function(matrix, option, phenoDataC=NULL){
     matrix = matrix[,colSums(matrix)!=0]
 
     if(option=="column"){
-        
+      browser()
         matrix = apply(matrix,2,function(x) x/sum(x)) 
 
     } else if(option=="row"){ 
@@ -284,6 +284,7 @@ Scaling <- function(matrix, option, phenoDataC=NULL){
         matrix = (matrix - min(matrix))/(max(matrix) - min(matrix))
 
     } else if (option=="LogNormalize"){
+        browser()
         #matrix = as.matrix(expm1(Seurat::LogNormalize(matrix, display.progress = FALSE))) #for v2.1
         matrix = as.matrix(expm1(Seurat::LogNormalize(matrix, verbose = FALSE))) #for v3
 
