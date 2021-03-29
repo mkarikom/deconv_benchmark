@@ -1,4 +1,0 @@
-CTall,CTthresh,Pearson,RMSE,batchid,dataset,maxP,method,minP,nbatch,ncells,nmix,normalizationC,normalizationT,nz,remove,transformation
-TRUE,0,-0.2967785841520463,0.021712111078535868,1,Baron,40,dsLDA,30,1,1000,10,column,LogNormalize,0,none,none
-TRUE,0,0.1049,0.0543,1,Baron,40,MuSiC,30,1,1000,10,column,LogNormalize,0,none,none
-TRUE,0,0.0528,0.0653,1,Baron,40,SCDC,30,1,1000,10,column,LogNormalize,0,none,none
