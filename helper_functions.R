@@ -52,7 +52,6 @@ Generator <- function(sce, phenoData, Num.mixtures = 1000, pool.size = 100, min.
       selected.CT = sample(CT, num.CT.mixture, replace = FALSE) # the random selection of cell types in the mixture
       
       P = runif(num.CT.mixture, min.percentage, max.percentage) # random percentage for every pseudo-sub population in the mixture
-      print(paste0("sampled P: \n",P))
       P = round(P/sum(P), digits = log10(pool.size))  #sum to 1
       P = data.frame(CT = selected.CT, expected = P, stringsAsFactors = FALSE)
       
@@ -256,7 +255,6 @@ Scaling <- function(matrix, option, phenoDataC=NULL){
     matrix = matrix[,colSums(matrix)!=0]
 
     if(option=="column"){
-      browser()
         matrix = apply(matrix,2,function(x) x/sum(x)) 
 
     } else if(option=="row"){ 
@@ -284,7 +282,6 @@ Scaling <- function(matrix, option, phenoDataC=NULL){
         matrix = (matrix - min(matrix))/(max(matrix) - min(matrix))
 
     } else if (option=="LogNormalize"){
-        browser()
         #matrix = as.matrix(expm1(Seurat::LogNormalize(matrix, display.progress = FALSE))) #for v2.1
         matrix = as.matrix(expm1(Seurat::LogNormalize(matrix, verbose = FALSE))) #for v3
 
